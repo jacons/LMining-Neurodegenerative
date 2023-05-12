@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 
-from Utils.Utils import Graph
+from Graph_class import Graph
 
 
 class Co_occurrencesGraph(Graph):

@@ -91,7 +91,7 @@ def load_dataset(term='neurodegenerative', folder='dataset/annotations'):
     filepath = f'{folder}/{term}.json'
     if not Path(filepath).exists():
         download_dataset(term=term, folder=folder)
-    with open('../dataset/annotations/neurodegenerative.json') as file:
+    with open('dataset/annotations/neurodegenerative.json') as file:
         dataset = json.load(file)
         texts = dict(pmid=[], text=[])
         entities = dict(id=[], pmid=[], mention=[], obj=[], prob=[], span_begin=[],

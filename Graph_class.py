@@ -51,7 +51,7 @@ class Graph:
             list([(id, info['mention']) for id, info in self.index_to_info.items()])[range_nodes[0]:range_nodes[1]])
         nx.draw(graph, labels=labels)
 
-    def find_nearest(self, src_index, predicate: Callable, max_: int = 1):
+    def find_nearest(self, src_index, predicate: Callable, max_=1, stop_condition=None):
         frontier = {_to: (v, []) for _to, v in enumerate(self.scaled_adj_matrix[src_index]) if v > 0}
         already_visited, result = {src_index}, []
         while len(frontier.keys()) > 0:
@@ -72,5 +72,7 @@ class Graph:
                             frontier[_to] = new_value
                     else:
                         frontier[_to] = new_value
+            if stop_condition is not None:
+                stop_condition(self.index_to_info[_to])
 
         return result

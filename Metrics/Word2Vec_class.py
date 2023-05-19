@@ -7,10 +7,11 @@ from Graph_class import Graph
 
 
 class TrainingCallback(CallbackAny2Vec):
-    def __init__(self):
+    def __init__(self, verbose: bool = False):
         self.epoch = 0
         self.tqdm = None
         self.previous_total_loss = 0
+        self.verbose = verbose
 
     def on_epoch_end(self, model):
         if self.tqdm is None:
@@ -18,7 +19,8 @@ class TrainingCallback(CallbackAny2Vec):
         total_loss = model.get_latest_training_loss()
         loss = total_loss - self.previous_total_loss
         self.previous_total_loss = total_loss
-        tqdm.write(f'Loss after epoch {self.epoch + 1}/{model.epochs}: {loss}')
+        if self.verbose:
+            tqdm.write(f'Loss after epoch {self.epoch + 1}/{model.epochs}: {loss}')
         self.epoch += 1
         self.tqdm.update(1)
         if self.epoch == model.epochs:
@@ -28,9 +30,10 @@ class TrainingCallback(CallbackAny2Vec):
 
 class Word2VecGraph(Graph):
 
-    def __init__(self, df_entities, texts):
+    def __init__(self, df_entities, texts, verbose: bool = False):
         super(Word2VecGraph, self).__init__(df_entities)
         self.texts = texts
+        self.verbose = verbose
 
     def populate_adj_matrix(self, **kargs):
         w2v_model = Word2Vec(
@@ -42,14 +45,14 @@ class Word2VecGraph(Graph):
             epochs=kargs['epochs'],
             alpha=kargs['learning_rate'],
             compute_loss=True,
-            callbacks=[TrainingCallback()]
+            callbacks=[TrainingCallback(self.verbose)]
         )
         w2v = w2v_model.wv
 
         for i_node in tqdm(range(len(self.adjacency_matrix)), desc="Word2VecGraph populate_adj_matrix"):
-            word1 = id_to_wuid[self.index_to_info[i_node]['id']].lower()
+            word1 = self.index_to_info[i_node]['wuid'].lower()
             for j_node in range(i_node):
-                word2 = id_to_wuid[self.index_to_info[j_node]['id']].lower()
+                word2 = self.index_to_info[j_node]['wuid'].lower()
                 try:
                     self.adjacency_matrix[i_node, j_node] = w2v.similarity(word1, word2)
                 except KeyError:

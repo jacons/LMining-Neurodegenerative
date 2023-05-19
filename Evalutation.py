@@ -22,9 +22,9 @@ def test_DDAs(graph: Graph,
     """
     Given the knowledge graph, the method tests it on test_set
     :param graph: Knowledge graph
+    :param top_z: The top-z drug discovered by the algorthm
     :param test_set: Benchmark to test
     :param max_diseases:  max disease to take into consideration
-    :param top_z: The top-z drug discovered by the algorthm
     :return: precision
     """
 
@@ -47,22 +47,22 @@ def test_DDAs(graph: Graph,
     return matched / len(i_diseases)
 
 
-def find_matches_drug_disease(graph: Graph,
+def find_diseases_precisionz(graph: Graph,
                               top_z: int,
                               test_set: Dict,
                               max_diseases: int) -> list:
     """
-
+    Retrieve the precisionz for each disease
     :param graph: Knowledge graph
-    :param test_set:
-    :param max_diseases: max disease to take into consideration
     :param top_z: the top-z drug discovered by the algorthm
-    :return:
+    :param test_set: Benchmark to test
+    :param max_diseases: max disease to take into consideration
+    :return: List of precisionz portion for each disease
     """
     i_diseases = [i_node for _, i_node in GraphRanker(graph).rank_nodes() if graph.index_to_info[i_node]['source']][
                  :max_diseases]  # intersection
 
-    matches = []
+    precisionz = []
 
     # For all diseases that are contained in both knowledge graph and test set
     for i_disease in tqdm(i_diseases, desc="test_drug_disease"):
@@ -77,23 +77,23 @@ def find_matches_drug_disease(graph: Graph,
                                  drug_id=graph.index_to_info[i_neighbor]['id'],
                                  test_set=test_set):
                 matched += 1
-        matches.append(matched / len(nearest_neighbors))
+        precisionz.append(matched / len(nearest_neighbors))
 
-    return matches
+    return precisionz
 
 
 graphType = Enum('GraphType', ['COOCCURRENCES', 'WORD2VEC'])
 
 
-def create_knowledge_graph(config,
+def create_knowledge_graph(config: tuple,
                            df_entities: DataFrame,
                            texts) -> Graph:
     """
     Given the configurations, the method builds the Knowledge graph
-    :param config:
-    :param df_entities:
-    :param texts:
-    :return:
+    :param config: Configuration of knoledge graph composed by graph type and hyperparams
+    :param df_entities: Dataframe of entities
+    :param texts: Dataframe of texts for each pubmed id
+    :return: Knowledge graph
     """
     graph_type, kargs = config
     graph = None
@@ -119,9 +119,9 @@ def model_evaluation(configs,
     """
     Given a set of configuration to try, the method finds the best one
     :param configs: configuration to try
-    :param ts_set:
+    :param ts_set: Benchmark to test
     :param top_z: The top-z drug discovered by the algorthm
-    :param texts:
+    :param texts: Dataframe of texts for each pubmed id
     :param df_entities: Sources information (documents)
     :param max_diseases: max disease to take into consideration
     :return: a sorted list of models
@@ -173,7 +173,7 @@ def sample_disease2drugs(ddas: dict,
     :param ddas: Disease-Drug Association provided by test set
     :param disease: A given disease
     :param len_sampling: length of sampling
-    :return:
+    :return: List of normalized id of drugs sampled
     """
     drug_ids = ddas[normalize_meshId(disease)]
     samples = sample(drug_ids, len_sampling) if len_sampling < len(drug_ids) else drug_ids
@@ -185,7 +185,7 @@ def sample_drugs(graph: Graph, len_sampling: int):
     Given the Knowledge graph, return k drugs random
     :param graph: Knowledge graph
     :param len_sampling: length of sampling
-    :return:
+    :return: List of normalized id of drugs sampled
     """
     drug_ids = [normalize_meshId(id) for id, info in graph.id_to_info.items() if info['obj'] == 'drug']
     return sample(drug_ids, len_sampling) if len_sampling < len(drug_ids) else drug_ids
@@ -196,13 +196,12 @@ def pValues_DDAs(graph: Graph,
                  max_diseases: int = None,
                  n_samples: int = 15) -> list[float]:
     """
-
+    Function able to retrieve the list of pvalues of firsts disease in the page rank that are in the intersection between knoledge graph and test set
     :param graph: Knowledge graph
-    :param ddas:
+    :param ddas: Disease-Drug Association provided by test set
     :param max_diseases: max disease to take into consideration
-    :param n_samples:
-    :param offset:
-    :return:
+    :param n_samples: Number of drugs to sample
+    :return: Pvalue for each disease
     """
 
     # Make the intersection between Test and graph (disease)

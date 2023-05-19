@@ -3,19 +3,21 @@ import requests as requests
 import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
+from tqdm.notebook import tqdm as tqdm_notebook
+tqdm_notebook.pandas()
 
 PUBMED_BASEURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&usehistory=y&'
 BERN_PUBMED_IDS_LIMIT = 5
 BERN_BASEURL = 'http://bern2.korea.ac.kr/pubmed/'
 
 
-def search_listids(term: str, ret_start: int = 0, ret_max: int = 10000):
+def search_listids(term: str, ret_start: int = 0, ret_max: int = 10000) -> list[str]:
     """
     Function able to search all pubmed id (pmid) of documents related to a given term.
-    :param term:
-    :param ret_start:
-    :param ret_max:
-    :return:
+    :param term: Term of search used in the pubmed search engine.
+    :param ret_start: Starting offset to skip the firsts results.
+    :param ret_max: Size of pubmed ids to retrieve.
+    :return: List of pbmed ids retrieved.
     """
     res = requests.get(f'{PUBMED_BASEURL}term={term}&retstart={ret_start}&retmax={ret_max}')
     if res.ok:
@@ -24,12 +26,11 @@ def search_listids(term: str, ret_start: int = 0, ret_max: int = 10000):
     raise ValueError(f'eutils.ncbi error: {res.status_code}')
 
 
-def pubmed_ner(indexes: list[str]):
+def pubmed_ner(indexes: list[str]) -> list[dict]:
     """
     Function able to retrieve all annotations given by BERN model for each pubmed id passed in input.
-    (TODO: Sembra che BERN non funzioni così bene poiché dopo le prime 20 tag sembra non detecti piu nulla)
-    :param indexes:
-    :return:
+    :param indexes: List of pubmed ids to tag with bern. They should be less or equal than 5.
+    :return: List of annotations for each pubmedid.
     """
     formatted_indexes = ','.join(indexes)
     res = requests.get(f'{BERN_BASEURL}{formatted_indexes}')
@@ -39,12 +40,11 @@ def pubmed_ner(indexes: list[str]):
     raise ValueError(f'bern2 error: {res.status_code}\n{res.text}')
 
 
-def download_dataset(term='neurodegenerative', folder='dataset/annotations'):
+def download_dataset(term='neurodegenerative', folder='dataset/annotations') -> None:
     """
     Function able to download and cache data for a given term.
-    :param term:
-    :param folder:
-    :return:
+    :param term: Term to search pubmed ids.
+    :param folder: Folder to save the annotations.
     """
     filepath = f'{folder}/{term}.json'
     list_ids = search_listids(term)
@@ -80,13 +80,15 @@ def download_dataset(term='neurodegenerative', folder='dataset/annotations'):
     pbar.close()
 
 
-def load_dataset(term='neurodegenerative', folder='dataset/annotations'):
+def load_dataset(term='neurodegenerative', folder='dataset/annotations') -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Function able to load the dataset given a term. This function retrieves already cached data
     if there are and provides them through 2 dataframes.
-    :param term:
-    :param folder:
-    :return:
+    :param term: Term to search pubmed ids.
+    :param folder: Folder to save bern annotations.
+    :return: Tuple of dataframes related to:
+        - associations pubmed id and texts
+        - entity for each pubmed id with bern annotation information
     """
     filepath = f'{folder}/{term}.json'
     if not Path(filepath).exists():

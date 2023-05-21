@@ -2,7 +2,7 @@
 # Literature Mining for Neurodegenerative disease
 [report.pdf](https://github.com/jacons/LMining-Neurodegenerative/files/11524262/report.pdf)
 
-[presentation.pdf](https://github.com/jacons/LMining-Neurodegenerative/files/11524263/presentation.pdf)
+[presentation.pdf](https://github.com/jacons/LMining-Neurodegenerative/files/11525248/presentation.pdf)
 
 
 This study aims

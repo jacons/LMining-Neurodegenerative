@@ -48,16 +48,16 @@ def test_DDAs(graph: Graph,
 
 
 def find_diseases_precisionz(graph: Graph,
-                              top_z: int,
-                              test_set: Dict,
-                              max_diseases: int) -> list:
+                             top_z: int,
+                             test_set: Dict,
+                             max_diseases: int) -> list:
     """
-    Retrieve the precisionz for each disease
+    Retrieve the precision@z for each disease
     :param graph: Knowledge graph
     :param top_z: the top-z drug discovered by the algorthm
     :param test_set: Benchmark to test
     :param max_diseases: max disease to take into consideration
-    :return: List of precisionz portion for each disease
+    :return: the List of precision@z portion for each disease
     """
     i_diseases = [i_node for _, i_node in GraphRanker(graph).rank_nodes() if graph.index_to_info[i_node]['source']][
                  :max_diseases]  # intersection
@@ -90,7 +90,7 @@ def create_knowledge_graph(config: tuple,
                            texts) -> Graph:
     """
     Given the configurations, the method builds the Knowledge graph
-    :param config: Configuration of knoledge graph composed by graph type and hyperparams
+    :param config: Configuration of knowledge graph composed by graph type and hyperparams
     :param df_entities: Dataframe of entities
     :param texts: Dataframe of texts for each pubmed id
     :return: Knowledge graph
@@ -149,8 +149,7 @@ def model_evaluation(configs,
     return ranking
 
 
-def plot_hist(x,y):
-
+def plot_hist(x, y):
     plt.figure(figsize=(8, 4))
     ax = plt.axes()
     ax.set_facecolor("#ececec")
@@ -158,7 +157,7 @@ def plot_hist(x,y):
     ax.yaxis.grid(color='white')
     ax.xaxis.grid(color='white')
     plt.bar(x, y, color="#2985e5", edgecolor="black")
-    plt.xticks(range(len(x)), [str(i*10) + "%" for i in x])
+    plt.xticks(range(len(x)), [str(i * 10) + "%" for i in x])
     plt.xlabel("Precision")
     plt.ylabel("Num of disease")
     plt.title("Precision@Z for the first 100 most important diseases in the KG")
@@ -196,12 +195,13 @@ def pValues_DDAs(graph: Graph,
                  max_diseases: int = None,
                  n_samples: int = 15) -> list[float]:
     """
-    Function able to retrieve the list of pvalues of firsts disease in the page rank that are in the intersection between knoledge graph and test set
+    Function able to retrieve the list of p-values of first disease in the page rank that are in the
+    intersection between knowledge graph and test set
     :param graph: Knowledge graph
     :param ddas: Disease-Drug Association provided by test set
     :param max_diseases: max disease to take into consideration
-    :param n_samples: Number of drugs to sample
-    :return: Pvalue for each disease
+    :param n_samples: the Number of drugs to sample
+    :return: P-value for each disease
     """
 
     # Make the intersection between Test and graph (disease)

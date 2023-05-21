@@ -15,9 +15,9 @@ def search_listids(term: str, ret_start: int = 0, ret_max: int = 10000) -> list[
     """
     Function able to search all pubmed id (pmid) of documents related to a given term.
     :param term: Term of search used in the pubmed search engine.
-    :param ret_start: Starting offset to skip the firsts results.
+    :param ret_start: Starting offset to skip the first results.
     :param ret_max: Size of pubmed ids to retrieve.
-    :return: List of pbmed ids retrieved.
+    :return: List of pmed ids retrieved.
     """
     res = requests.get(f'{PUBMED_BASEURL}term={term}&retstart={ret_start}&retmax={ret_max}')
     if res.ok:
@@ -30,7 +30,7 @@ def pubmed_ner(indexes: list[str]) -> list[dict]:
     """
     Function able to retrieve all annotations given by BERN model for each pubmed id passed in input.
     :param indexes: List of pubmed ids to tag with bern. They should be less or equal than 5.
-    :return: List of annotations for each pubmedid.
+    :return: List of annotations for each PubMed-id.
     """
     formatted_indexes = ','.join(indexes)
     res = requests.get(f'{BERN_BASEURL}{formatted_indexes}')
@@ -66,14 +66,14 @@ def download_dataset(term='neurodegenerative', folder='dataset/annotations') -> 
             with open(filepath, 'w') as file:
                 json.dump(annotations, file)
             pbar.update(BERN_PUBMED_IDS_LIMIT)
-        except Exception as e:
+        except Exception:
             print(f'Failed download ids: {ids_batch}, retry with single calls')
             for id in ids_batch:
                 try:
                     annotations.extend(pubmed_ner([id]))
                     with open(filepath, 'w') as file:
                         json.dump(annotations, file)
-                except Exception as e:
+                except Exception:
                     print(f'Failed download id: {id}')
                 pbar.update(1)
         del list_ids[0:BERN_PUBMED_IDS_LIMIT]
